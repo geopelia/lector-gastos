@@ -1,0 +1,18 @@
+# ejecutar docker contenedor solo
+ docker run -it --rm prueba-php /bin/bash
+
+# Compose (prender y apagar)
+docker compose up -d
+docker compose down
+
+# conectarme a instancia
+docker exec -i -t "php-prueba-app-1" /bin/bash
+
+# rebuild imagen
+ docker build -t prueba-php .
+ 
+# Referencia
+https://hub.docker.com/_/php/
+https://docs.php.earth/docker/composer/
+https://superuser.com/questions/1791373/location-of-wsl-home-directory-in-windows
+https://docs.docker.com/get-started/03_updating_app/
