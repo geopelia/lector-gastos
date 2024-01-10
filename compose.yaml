@@ -1,6 +1,6 @@
 services:
   app:
-    image: bc44850348a69cf1e24806880ea9ec98ba3c717416ba1176aa5de884ad3b5567
+    image: 444e9d341bf6138fefefd44e314c771da6168b6e0715d5e18f1f2fd11b1777c7 
     volumes:
      - .:/usr/src/myapp  
     tty: true
