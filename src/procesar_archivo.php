@@ -38,9 +38,9 @@ function leerArchivo(string $nombre_archivo)
             }
             $monto = procesarMonto($data[5]);
             if ($monto < -6000) {
-                $my_info[] = (object) [
-                "fecha" => $fecha->format("c"), 
-                "monto" => $monto
+                $my_info[] = [
+                "fecha" => $fecha,
+                "monto" => $monto,
                 ];
 
             }
@@ -49,9 +49,7 @@ function leerArchivo(string $nombre_archivo)
         }
         echo "Archivo leido\n";
         fclose($manejador);
-        $obj = new stdClass();
-        $obj->data = $my_info;
-        file_put_contents("salida.txt", json_encode($obj));
+        guardarJSON($my_info);
 
     } else {
         echo "File $nombre_archivo not found \n";
@@ -105,6 +103,27 @@ function procesarMonto(string $monto)
         $monto, FILTER_SANITIZE_NUMBER_FLOAT, 
         FILTER_FLAG_ALLOW_FRACTION
     );
+}
+
+/**
+ * Guarda la informacion util como json en un archivo de texto
+ *
+ * @param array $info Arreglo con los registros a guardar
+ *
+ * @return null
+ */
+function guardarJSon(array $info)
+{
+    $nuevo_arreglo = [];
+    foreach ($info as $elem) {
+        $record = new stdClass();
+        $record->monto = (string) $elem["monto"];
+        $record->fecha = $elem["fecha"]->format("c");
+        $nuevo_arreglo[] = $record;
+    }
+        $obj = new stdClass();
+        $obj->data = $nuevo_arreglo;
+        file_put_contents("salida.txt", json_encode($obj));
 }
 
 leerArchivo("prueba.csv");
