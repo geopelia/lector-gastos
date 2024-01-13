@@ -49,7 +49,8 @@ function leerArchivo(string $nombre_archivo)
         }
         echo "Archivo leido\n";
         fclose($manejador);
-        guardarJSON($my_info);
+        //guardarJSON($my_info);
+        generarReportes($my_info);
 
     } else {
         echo "File $nombre_archivo not found \n";
@@ -85,7 +86,12 @@ function depurarArchivo(array $data, int $row)
  */
 function procesarFecha(string $fecha, DateTimeZone $tz)
 {
-    return DateTime::createFromFormat("Y/m/d", $fecha, $tz);
+    $date_time = DateTime::createFromFormat("Y/m/d", $fecha, $tz);
+    if ($date_time === false) {
+        return $date_time;
+    }
+    $date_time->setTime(0, 0);
+    return $date_time;
 
 }
 
@@ -124,6 +130,19 @@ function guardarJSon(array $info)
         $obj = new stdClass();
         $obj->data = $nuevo_arreglo;
         file_put_contents("salida.txt", json_encode($obj));
+}
+
+/**
+ * Genera los reportes a partir de la data suministrada.
+ *
+ * @param array $info la data para hacer reportes
+ *
+ * @return null
+ */
+function generarReportes(array $info) 
+{
+    include_once "generador_reportes.php";
+    crearGraficos($info);
 }
 
 leerArchivo("prueba.csv");
