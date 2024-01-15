@@ -14,6 +14,7 @@
 require_once '../lib/jpgraph/src/jpgraph.php';
 require_once '../lib/jpgraph/src/jpgraph_line.php';
 require_once "conjunto.php";
+require_once "gastos_dias.php";
 
 /**
  * Función base donde se mandan a crear los diferentes reportes.
@@ -24,95 +25,10 @@ require_once "conjunto.php";
  */
 function crearGraficos(array $info)
 {
-    $fechas = obtenerArregloDias($info);
-    $sumados = sumarMontosDia($fechas, $info);
-
-    $meses = filtrarFechas($fechas, OpcFecha::YM);
-    foreach ($meses as $mes) {
-        graficarMes($sumados, $mes);
-    }
+	$fechas = obtenerArregloDias($info);
+	generarGraficosMensuales($fechas);
+	generarGraficosAnuales($fechas);
     echo "\n";
-}
-/**
- * Imprime info de depuracion.
- *
- * @param array $info    data de entrada para hacer los reportes.
- * @param array $fechas  Listado de todos los dias procesados.
- * @param array $sumados Data de entrada con montos sumados por dias.
- *
- * @return null
- */
-function depurar(array $info, array $fechas, array $sumados) 
-{
-    print("Hola mundo, el arreglo tiene: " . count($info) . "registros\n" );
-    echo "hay " . count($fechas) . " dias distintos\n"; 
-    echo "años son :";
-    print_r(filtrarFechas($fechas, OpcFecha::Y));
-    echo "\nmeses son: ";
-    print_r(filtrarFechas($fechas, OpcFecha::YM));
-    echo "\nvalores sumados son: " . count($sumados) . "\n";
-    print_r($sumados);
-}
-
-/**
- * Suma los montos de los gastos del mismo dia.
- *
- * @param array $fechas Listado de todos los dias procesados.
- * @param array $info   data de entrada para hacer los reportes.
- *
- * @return array Arreglo con informacion detallada de dias, monto del dia 
- * y cantidad de registros.
- */
-function sumarMontosDia(array $fechas, array $info) 
-{
-    $sumas = [];
-    foreach ($fechas as $fecha) {
-        $sumatoria = 0;
-        $registros = 0;
-        foreach ($info as $registro) {
-            $fecha_pivote = $registro["fecha"]->format("Ymd");
-            if ($fecha_pivote == $fecha) {
-                $sumatoria += $registro["monto"];
-                $registros++;
-            }
-
-        }
-        $sumas[] = [
-        "fecha" => $fecha,
-        "monto" => $sumatoria,
-        "cantidad" => $registros,
-        ];
-    }
-    return $sumas;
-}
-
-/**
- * Filtra y devuelve las fechas especificadas sin repetir registros.
- *
- * @param array    $fechas Listado de todos los dias procesados.
- * @param OpcFecha $opcion Opcion de un enumerado para filtrar las fechas.
- *
- * @return array Los elementos de la fecha filtrados y sin duplicados.
- */
-function filtrarFechas(array $fechas, OpcFecha $opcion) 
-{
-    if ($opcion === OpcFecha::YMD) {
-        return $fechas;
-    }
-    $listado = new Conjunto();
-    foreach ($fechas as $fecha) {
-        switch ($opcion) {
-        case OpcFecha::Y:
-            $pivote = substr($fecha, 0, 4);
-            break;
-        case OpcFecha::YM:
-            $pivote = substr($fecha, 0, 6);
-            break;
-        }
-
-        $listado->agregar($pivote);
-    }
-    return $listado->getLista();
 }
 
 /**
@@ -125,12 +41,46 @@ function filtrarFechas(array $fechas, OpcFecha $opcion)
  */
 function obtenerArregloDias(array $info) 
 {
-    $fechas = new Conjunto();
-    foreach ($info as $registro) {
-        $fecha_pivot = $registro["fecha"]->format("Ymd");
-        $fechas->agregar($fecha_pivot);
+	$fechas = [];	
+	foreach ($info as $registro) {
+		$fecha_pivot = $registro["fecha"]->format("Ymd");
+		if (isset($fechas[$fecha_pivot])) {
+			$fechas[$fecha_pivot]->agregarMonto($registro["monto"]);
+		}
+		else {
+			$gastos_dias = new GastosDias($registro["fecha"], $registro["monto"]);
+			$fechas[$fecha_pivot] = $gastos_dias;
+		}
     }
-    return $fechas->getLista();
+    return array_values($fechas);
+}
+
+function generarGraficosMensuales(array $fechas)
+{
+	$meses_aux = array_map(function($gasto_dia) {
+		return $gasto_dia->getAnnoMes();
+	}, $fechas);
+	$meses = array_unique($meses_aux);
+	foreach ($meses as $mes) {
+		$fechas_mes = array_filter($fechas, function($gasto_dia) use(&$mes){
+			return $gasto_dia->getAnnoMes() == $mes;
+		}); 
+       graficarMes($fechas_mes, $mes);
+	}
+}
+
+function generarGraficosAnuales(array $fechas) 
+{
+	$annos_aux = array_map(function($gasto_dia) {
+		return $gasto_dia->getAnno();
+	}, $fechas);
+	$annos = array_unique($annos_aux);
+	foreach ($annos as $anno) {
+		$fechas_anno = array_filter($fechas, function($gasto_dia) use(&$anno){
+			return $gasto_dia->getAnno() == $anno;
+		}); 
+       graficarAnno($fechas_anno, $anno);
+	}
 }
 
 /**
@@ -148,14 +98,12 @@ function graficarMes(array $info, string $mes)
     $year = (int) substr($mes, 0, 4);
     $data_x = [];
     $data_y = [];
-    foreach ($info as $record) {
-        if (substr($record["fecha"], 0, 6) == $mes) {            
-            $data_x[] = (int) substr($record["fecha"], -2);
-            $data_y[] = abs($record["monto"]);
-        }
+    foreach ($info as $llave => $valor) {
+            $data_x[] = (int) $valor->getDiaMes();
+            $data_y[] = abs($valor->sumarMontos());
     }
-    print_r($data_x);
-    print_r($data_y);
+    /*print_r($data_x);
+    print_r($data_y);*/
     $graph = new Graph(600, 400);
     $max_days = daysInMonth($month, $year);
     $graph->setScale("intlin", 0, 0, 1, $max_days);
@@ -180,6 +128,30 @@ function graficarMes(array $info, string $mes)
  */ 
 function daysInMonth($month, $year)
 {
-    return $month == 2 i? ($year % 4 ? 28 : ($year % 100 ? 29 : (
+    return $month == 2 ? ($year % 4 ? 28 : ($year % 100 ? 29 : (
     $year % 400 ? 28 : 29))) : (($month - 1) % 7 % 2 ? 30 : 31);
 }
+
+function graficarAnno(array $info, string $anno)
+{
+    $year = (int) $anno;
+    $data_x = [];
+    $data_y = [];
+    foreach ($info as $llave => $valor) {
+            $data_x[] = ((int) $valor->getDiaAnno()) + 1;
+            $data_y[] = abs($valor->sumarMontos());
+    }
+    /*print_r($data_x);
+    print_r($data_y);*/
+    $graph = new Graph(600, 400);
+    $max_days = 366;
+    $graph->setScale("intlin", 0, 0, 1, $max_days);
+    $graph->setMargin(100, 10, 40, 40);
+    $graph->title->Set("Consumos del año " . $year);
+    $graph->xaxis->title->set("Dia del año ");
+    $graph->yaxis->title->set("Monto");
+    $line_plot=new LinePlot($data_y, $data_x);
+    $graph->Add($line_plot);
+    $graph->Stroke("../output/ejemplo" . $anno . "-" . (string) time() . ".png");
+}
+
