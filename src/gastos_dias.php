@@ -1,9 +1,9 @@
 <?php
 /**
- * Clases utilitarias. 
+ * Clases utilitarias.
  *
  * PHP version 8
- * 
+ *
  * @category Default
  * @package  Default
  * @author   Atilio Quintero <atilioquintero@gmail.com>
@@ -15,7 +15,7 @@
  * Clase que guarda el registro de un dia y los montos de ese dia.
  *
  * PHP version 8
- * 
+ *
  * @category Default
  * @package  Default
  * @author   Atilio Quintero <atilioquintero@gmail.com>
@@ -25,12 +25,12 @@
 class GastosDias
 {
     /**
-     * El dia que contiene montos asociados. 
+     * El dia que contiene montos asociados.
      *
      * @var DateTime
      */
     private DateTime $_dia;
-    
+
     /**
      * Lista con todos los gastos que hay en un dia.
      *
@@ -42,7 +42,8 @@ class GastosDias
      * Constructor de la clase
      *
      * @param DateTime $dia   El dia que tiene un gasto asociado.
-     * @param integer  $monto Uno de los montos que ocurrio en ese día.
+     * @param float    $monto Uno de los montos que ocurrio en ese
+     *                        día.
      */
     public function __construct(DateTime $dia, float $monto = 0)
     {
@@ -53,17 +54,17 @@ class GastosDias
     }
 
     /**
-     * Asocia un monto al listado de montos del día. 
+     * Asocia un monto al listado de montos del día.
      *
      * @param float $monto El valor del gasto que ocurrio ese día.
-     * 
-     * @return void 
+     *
+     * @return void
      */
     public function agregarMonto(float $monto)
     {
         if ($monto != 0) {
             $this->_montos[] = $monto;
-        }        
+        }
     }
 
     /**
@@ -92,9 +93,9 @@ class GastosDias
     }
 
     /**
-     * Devuelve el promedio de todos los montos asociados al día. 
+     * Devuelve el promedio de todos los montos asociados al día.
      *
-     * @return float Promedio de los montos para el día. 
+     * @return float Promedio de los montos para el día.
      */
     public function montosPromedios()
     {
@@ -104,7 +105,7 @@ class GastosDias
     /**
      * Devuelve la fecha del día como texto en formato YYYYMMDD.
      *
-     * @return string La fecha completa en texto. 
+     * @return string La fecha completa en texto.
      */
     public function getFecha()
     {
@@ -114,7 +115,7 @@ class GastosDias
     /**
      * Devuelve el mes y año de la fecha en formato YYYYMM
      *
-     * @return string El mes y el año como texto. 
+     * @return string El mes y el año como texto.
      */
     public function getAnnoMes()
     {
@@ -141,15 +142,15 @@ class GastosDias
     {
         return $this->_dia->format("d");
     }
-    
+
     /**
      * Devuelve el día del año de la fecha en formato DD.
      *
      * @return string El dia del año como texto.
-     */ 
+     */
     public function getDiaAnno()
     {
         return $this->_dia->format("z");
     }
-    
+
 }
