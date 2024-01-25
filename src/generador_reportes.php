@@ -11,9 +11,8 @@
  * @link     http://localhost/
  */
 
-require_once '../lib/jpgraph/src/jpgraph.php';
-require_once '../lib/jpgraph/src/jpgraph_line.php';
 require_once "gastos_dias.php";
+require_once "reporteador.php";
 
 /**
  * Función base donde se mandan a crear los diferentes reportes.
@@ -124,16 +123,16 @@ function graficarMes(array $info, string $mes)
     }
     /*print_r($data_x);
     print_r($data_y);*/
-    $graph = new Graph(600, 400);
     $max_days = daysInMonth($month, $year);
-    $graph->setScale("intlin", 0, 0, 1, $max_days);
-    $graph->setMargin(100, 10, 40, 40);
-    $graph->title->Set("Consumos del mes " . $month . " del año " . $year);
-    $graph->xaxis->title->set("Dia del mes");
-    $graph->yaxis->title->set("Monto");
-    $line_plot=new LinePlot($data_y, $data_x);
-    $graph->Add($line_plot);
-    $graph->Stroke("../output/ejemplo" . $mes . "-" . (string) time() . ".png");
+    $min_days = 1;
+    $title = "Consumos del mes " . $month . " del año " . $year;
+    $title_x = "Dia del mes";
+    $title_y = "Monto";
+    $filename = "ejemplo" . $mes;
+    hacerGrafico(
+        $data_x, $data_y, $min_days, $max_days, $title, $title_x,
+        $title_y, $filename
+    );
 
 }
 
@@ -171,15 +170,15 @@ function graficarAnno(array $info, string $anno)
     }
     /*print_r($data_x);
     print_r($data_y);*/
-    $graph = new Graph(600, 400);
     $max_days = 366;
-    $graph->setScale("intlin", 0, 0, 1, $max_days);
-    $graph->setMargin(100, 10, 40, 40);
-    $graph->title->Set("Consumos del año " . $year);
-    $graph->xaxis->title->set("Dia del año ");
-    $graph->yaxis->title->set("Monto");
-    $line_plot=new LinePlot($data_y, $data_x);
-    $graph->Add($line_plot);
-    $graph->Stroke("../output/ejemplo" . $anno . "-" . (string) time() . ".png");
+    $min_days = 1;
+    $title = "Consumos del año " . $year;
+    $title_x = "Dia del año ";
+    $title_y = "Monto";
+    $filename = "ejemplo" . $anno;
+    hacerGrafico(
+        $data_x, $data_y, $min_days, $max_days, $title, $title_x,
+        $title_y, $filename
+    );
 }
 
