@@ -97,7 +97,7 @@ class GastosDias
      *
      * @return float Promedio de los montos para el día.
      */
-    public function montosPromedios()
+    public function promediarMontos()
     {
         return $this->sumarMontos() / count($this->_montos);
     }
